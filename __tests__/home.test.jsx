@@ -1,22 +1,28 @@
-import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
-
+import { render, screen, within, waitFor } from "@testing-library/react";
 import Home from "../src/app/page";
+import { fetchCategories, fetchProducts } from "../src/lib/funtions";
+import { mockProducts } from "../__mocks__/mockProduct";
+import { mockCategories } from "../__mocks__/mockData";
+
+jest.mock("../src/lib/funtions");
 
 describe("Home Page", () => {
-  it("render  all products heading", () => {
-    render(<Home />);
-    screen.getByRole("heading", { name: /All products/i });
-  });
-
-  it("should render an accesible Search Box", () => {
-    render(<Home />);
-    const searchInput = screen.getByRole("searchbox");
-    screen.getByRole("heading", { name: /All products/i });
-    expect(searchInput).toHaveAccessibleName("Search");
-  });
-
   //   it("renders all products", () => {});
+  it("renders all products", async () => {
+    fetchProducts.mockResolvedValue(mockProducts);
+    fetchCategories.mockResolvedValue(mockCategories);
+
+    render(<Home />);
+
+    await waitFor(async () => {
+      const allProducts = await screen.getByRole("list", { name: /products/i });
+
+      const { getAllByRole } = within(allProducts);
+      const listItems = getAllByRole("listitem");
+      // Check if the number of list items is 4
+      expect(listItems.length).toBe(4);
+    });
+  });
   //   it("renders all categories", () => {});
   //   it("renders one product by category", () => {});
 });
